@@ -15,9 +15,9 @@
   --pilot: #0e6f86;    --pilot-soft: #e0f2f7;
   --early: #6b5b95;    --early-soft: #efebf7;
   --intl: #4338ca;     --intl-soft: #e8e7fb;
-  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
-  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-display: "Cambria", "Caladea", Georgia, serif;
+  --font-body: "Times New Roman", "Times", Tinos, serif;
+  --font-mono: "Times New Roman", Times, "Tinos", monospace;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --bg: #0c1320; --surface: #131c2c; --ink: #e5ecf6; --muted: #98a7bc; --line: #26324a;
