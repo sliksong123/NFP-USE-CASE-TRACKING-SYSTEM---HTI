@@ -1,0 +1,249 @@
+{
+  "meta": {
+    "name": "Organisations supporting NFPs with AI",
+    "description": "Companies, platforms, intermediaries and funders that provide AI products, funding or skills to Australian not-for-profits.",
+    "version": "2026-10-29",
+    "last_updated": "2026-10-29",
+    "schema": "supporters.schema.json"
+  },
+  "supporters": [
+    {
+      "id": "beam",
+      "organisation": "Beam",
+      "org_type": "Technology company",
+      "based_in": "United Kingdom",
+      "australian_presence": "Melbourne office (opened 2026)",
+      "offering_category": "case notes and frontline admin",
+      "offering": "AI tools built for social services, including Notes (Magic Notes) for case notes and reports, Interpret and Talk.",
+      "stage": "available",
+      "nfp_clients": [
+        "Life Without Barriers"
+      ],
+      "related_cases": [
+        "life-without-barriers--internal-operations"
+      ],
+      "quote": "Beam is now opening its first APAC office in Melbourne.",
+      "sources": [
+        {
+          "title": "iTWire (28 Apr 2026)",
+          "url": "https://itwire.com/business-it-news/data/beam-launches-in-australia-bringing-purpose-built-ai-to-the-social-services-sector"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "dataro",
+      "organisation": "Dataro",
+      "org_type": "Technology company",
+      "based_in": "Australia",
+      "australian_presence": "Australian-founded; Australian clients",
+      "offering_category": "fundraising",
+      "offering": "Predictive AI donor scores that tell fundraising teams which donors to contact, for direct mail, mid-value and regular-giving programs.",
+      "stage": "available",
+      "nfp_clients": [
+        "UNICEF Australia",
+        "Greenpeace Australia Pacific",
+        "Australia for UNHCR"
+      ],
+      "related_cases": [
+        "unicef-australia--fundraising",
+        "greenpeace-australia-pacific--fundraising",
+        "australia-for-unhcr--fundraising"
+      ],
+      "quote": "Dataro helps fundraising teams decide who to focus on, who to engage, and what to do next — before the budget moves.",
+      "sources": [
+        {
+          "title": "Dataro",
+          "url": "https://dataro.io/"
+        },
+        {
+          "title": "Dataro (undated case study)",
+          "url": "https://www.dataro.io/case-studies/testing-dataro-across-australia-for-unhcr-direct-mail-appeals"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "gofundme",
+      "organisation": "GoFundMe (GoFundMe Pro)",
+      "org_type": "Fundraising platform",
+      "based_in": "United States",
+      "australian_presence": "Operates in Australia; AI features not confirmed for Australia",
+      "offering_category": "fundraising",
+      "offering": "AI-suggested ask amounts, machine-learning prompts to convert one-off donors to monthly giving, AI-drafted campaign copy, and an AI fundraising coach (US first).",
+      "stage": "available",
+      "nfp_clients": [],
+      "related_cases": [],
+      "quote": "GoFundMe Intelligence uses your mission, campaign goals, and brand kit to suggest copy tailored to your organization.",
+      "sources": [
+        {
+          "title": "GoFundMe Pro (21 Aug 2026)",
+          "url": "https://pro.gofundme.com/c/blog/new-on-gofundme-pro-h1-2026/"
+        },
+        {
+          "title": "Business Wire (12 Mar 2026)",
+          "url": "https://www.businesswire.com/news/home/20260312265664/en/GoFundMe-Introduces-AI-Powered-Smart-Fundraising-Coach-to-Guide-Fundraisers-Every-Step-of-the-Way"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "infoxchange",
+      "organisation": "Infoxchange",
+      "org_type": "NFP intermediary",
+      "based_in": "Australia",
+      "australian_presence": "Australian not-for-profit",
+      "offering_category": "skills and capability building",
+      "offering": "AI Not-for-Profit Accelerator workshops with Microsoft, and co-lead of NFP Digital Futures, a $16M cross-sector program to help NFPs adopt AI responsibly.",
+      "stage": "available",
+      "nfp_clients": [],
+      "related_cases": [],
+      "quote": "This accelerator focuses on implementation so you can leave with practical progress.",
+      "sources": [
+        {
+          "title": "Infoxchange (18 May 2026)",
+          "url": "https://www.infoxchange.org/au/news/2026/05/ai-not-profit-accelerator-series"
+        },
+        {
+          "title": "PwC Australia (6 May 2026)",
+          "url": "https://www.pwc.com.au/media/2026/helping-not-for-profits-thrive-in-the-age-of-ai.html"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "microsoft",
+      "organisation": "Microsoft",
+      "org_type": "Technology company",
+      "based_in": "United States",
+      "australian_presence": "Australian operations",
+      "offering_category": "skills and capability building",
+      "offering": "Microsoft Elevate for Changemakers: free AI skills and readiness credentials for Australian nonprofit leaders; also nonprofit Copilot and Azure offers through Tech for Social Impact.",
+      "stage": "available",
+      "nfp_clients": [
+        "Uniting NSW.ACT",
+        "BaptistCare",
+        "Infoxchange"
+      ],
+      "related_cases": [
+        "uniting-nswact--internal-operations",
+        "baptistcare--internal-operations"
+      ],
+      "quote": "Microsoft Elevate for Changemakers is launching today to support Australian nonprofit and social impact leaders",
+      "sources": [
+        {
+          "title": "Microsoft (23 Apr 2026)",
+          "url": "https://news.microsoft.com/source/asia/2026/04/23/microsoft-announces-australias-largest-ai-skilling-commitment/"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "our-community-smartygrants",
+      "organisation": "Our Community (SmartyGrants)",
+      "org_type": "Social enterprise",
+      "based_in": "Australia",
+      "australian_presence": "Australian social enterprise",
+      "offering_category": "grantmaking",
+      "offering": "Grants-management software exploring AI tools to help grantmakers summarise complex applications and submissions.",
+      "stage": "planned",
+      "nfp_clients": [],
+      "related_cases": [],
+      "quote": "future AI tools could help grantmakers summarise complex applications or submissions",
+      "sources": [
+        {
+          "title": "SmartyGrants (1 Apr 2026)",
+          "url": "https://www.smartygrants.co.uk/articles/smarty-grants-is-getting-smarter-with-ai"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "pwc-australia",
+      "organisation": "PwC Australia",
+      "org_type": "Consultancy",
+      "based_in": "Australia",
+      "australian_presence": "Australian firm",
+      "offering_category": "funding and partnerships",
+      "offering": "Funding and in-kind support for NFP Digital Futures, launched with Infoxchange to build NFPs' digital, AI and cyber capability by 2030.",
+      "stage": "available",
+      "nfp_clients": [],
+      "related_cases": [],
+      "quote": "'NFP Digital Futures' aims to streamline a fragmented approach to investment and initiatives by 2030",
+      "sources": [
+        {
+          "title": "PwC Australia (6 May 2026)",
+          "url": "https://www.pwc.com.au/media/2026/helping-not-for-profits-thrive-in-the-age-of-ai.html"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "technologyone",
+      "organisation": "TechnologyOne",
+      "org_type": "Software vendor",
+      "based_in": "Australia",
+      "australian_presence": "Australian company",
+      "offering_category": "back office and ERP",
+      "offering": "Plus, an AI 'digital coworker' in its ERP that lets staff query finance, HR and payroll data and complete tasks by natural language or voice.",
+      "stage": "available",
+      "nfp_clients": [
+        "AnglicareSA",
+        "Southern Cross Care",
+        "Lutheran Services",
+        "PCYC Queensland"
+      ],
+      "related_cases": [
+        "anglicaresa--internal-operations",
+        "lutheran-services--internal-operations",
+        "pcyc-queensland--internal-operations"
+      ],
+      "quote": "Plus allows them to query data and complete tasks through natural language and voice conversations.",
+      "sources": [
+        {
+          "title": "SMB Tech (23 Sep 2026)",
+          "url": "https://smbtech.au/news/aged-care-and-not-for-profit-organisations-drive-uptake-of-technologyones-ai-digital-coworker/"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    },
+    {
+      "id": "telstra-foundation",
+      "organisation": "Telstra Foundation",
+      "org_type": "Corporate foundation",
+      "based_in": "Australia",
+      "australian_presence": "Australian foundation",
+      "offering_category": "funding and partnerships",
+      "offering": "Funds and supports AI-enhanced digital tools for youth mental health NFPs, and runs sessions on emerging technology for non-profits.",
+      "stage": "available",
+      "nfp_clients": [
+        "ReachOut",
+        "Orygen Digital"
+      ],
+      "related_cases": [
+        "reachout--client-facing-chatbot"
+      ],
+      "quote": "have supported the build of effective and Ai enhanced digital tools.",
+      "sources": [
+        {
+          "title": "Telstra Foundation (2025 year in review)",
+          "url": "https://telstrafoundation.com/a-year-of-impact-empowering-young-australians-in-2025/"
+        },
+        {
+          "title": "ReachOut",
+          "url": "https://about.au.reachout.com/blog/reachout-and-telstra-foundation-partner-on-ai-tool-tackling-youth-mental-health"
+        }
+      ],
+      "first_seen": "2026-10-29",
+      "last_seen": "2026-10-29"
+    }
+  ]
+}
