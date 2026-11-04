@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Tracker Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<style>
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; min-width: 0; }
+.card h2 { font: 700 19px/1.25 var(--font-display); margin: 0; }
+.help { font-size: 13.5px; color: var(--muted); margin: 0; max-width: 72ch; }
+.help a { color: var(--accent); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
+.grid .wide { grid-column: 1 / -1; }
+@media (max-width: 640px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.field { display: grid; gap: 5px; min-width: 0; }
+.field label { font: 600 13px var(--font-body); color: var(--ink); }
+.field label .req { color: var(--danger); }
+.field .hint { font-size: 12px; color: var(--muted); }
+.field input, .field select, .field textarea { font: 14px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 100%; min-width: 0; }
+.field textarea { min-height: 70px; resize: vertical; }
+.field select[multiple] { min-height: 140px; }
+.field.bad input, .field.bad select, .field.bad textarea { border-color: var(--danger); }
+.field .err { font-size: 12px; color: var(--danger); }
+.src-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr) auto; gap: 8px; }
+@media (max-width: 640px) { .src-row { grid-template-columns: minmax(0, 1fr); } }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row.end { justify-content: flex-end; }
+.status { font-size: 13.5px; padding: 9px 12px; border-radius: 7px; background: var(--accent-soft); color: var(--ink); }
+.status.error { background: var(--wattle-soft); color: var(--danger); }
+.status.ok { background: var(--deployed-soft); color: var(--deployed); }
+.items { display: grid; gap: 8px; }
+.item { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; justify-content: space-between; }
+.item .name { font-weight: 600; }
+.item .sub { font-size: 12.5px; color: var(--muted); }
+.item .acts { display: flex; gap: 6px; }
+.btn.danger { color: var(--danger); }
+.idline { font: 12.5px var(--font-mono); color: var(--muted); overflow-wrap: anywhere; }
+.badge { font: 500 12px var(--font-mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">NFP AI Use-Case Tracker</div>
+    <h1>Tracker admin</h1>
+    <p class="lede">Add, edit or delete cases and supporting organisations. Each save is committed to the GitHub repository, and the public site updates within a couple of minutes.</p>
+    <div class="runline"><a href="index.html">← Back to the public site</a></div>
+  </header>
+
+  <!-- ===== Sign in ===== -->
+  <section class="card" id="signin">
+    <h2>Sign in</h2>
+    <p class="help">Use a GitHub <b>fine-grained personal access token</b> that can only change this repository. Create one at <a href="https://github.com/settings/personal-access-tokens/new" target="_blank" rel="noopener">github.com/settings/personal-access-tokens/new</a>: under <i>Repository access</i> choose <i>Only select repositories</i> and pick this repo, and under <i>Repository permissions</i> set <i>Contents</i> to <i>Read and write</i>. The token stays in this browser only; it's never written into the site.</p>
+    <div class="grid">
+      <div class="field"><label for="repo">Repository <span class="req">*</span></label><input id="repo" placeholder="your-username/repo-name" autocomplete="off"><span class="hint">Filled in automatically on GitHub Pages.</span></div>
+      <div class="field"><label for="branch">Branch</label><input id="branch" value="main" autocomplete="off"></div>
+      <div class="field wide"><label for="token">Access token <span class="req">*</span></label><input id="token" type="password" placeholder="github_pat_…" autocomplete="off"></div>
+      <div class="field wide"><label style="font-weight:400;display:flex;gap:8px;align-items:center"><input id="remember" type="checkbox" style="width:auto"> Remember me on this device (leave unticked on shared computers)</label></div>
+    </div>
+    <div class="row">
+      <button class="btn primary" id="connect" type="button">Sign in</button>
+      <button class="btn" id="offline" type="button">Work offline instead</button>
+    </div>
+    <p class="help">Offline mode edits a copy in your browser. When you're done, download the updated file and upload it to the repo's <code>data</code> folder on github.com.</p>
+    <div class="status" id="signin-status" hidden></div>
+  </section>
+
+  <!-- ===== Editor ===== -->
+  <section class="panel" id="workspace" hidden>
+    <div class="status" id="who"></div>
+
+    <nav class="views" role="tablist" aria-label="Database">
+      <button role="tab" aria-selected="true" data-kind="cases">NFP use cases <span class="n" id="n-cases">0</span></button>
+      <button role="tab" aria-selected="false" data-kind="supporters">Supporting organisations <span class="n" id="n-supporters">0</span></button>
+    </nav>
+
+    <div class="bar">
+      <input id="search" type="search" placeholder="Search…" aria-label="Search entries">
+      <button class="btn primary" id="add" type="button">+ Add case</button>
+      <button class="btn" id="download" type="button" hidden>Download cases.json</button>
+      <button class="btn" id="signout" type="button">Sign out</button>
+    </div>
+
+    <form class="card" id="editor" hidden novalidate>
+      <h2 id="editor-title">Add case</h2>
+      <div class="idline" id="editor-id"></div>
+      <div class="grid" id="fields"></div>
+      <div class="status" id="editor-status" hidden></div>
+      <div class="row end">
+        <button class="btn" type="button" id="cancel">Cancel</button>
+        <button class="btn primary" type="submit" id="save">Save</button>
+      </div>
+    </form>
+
+    <div class="status" id="list-status" hidden></div>
+    <div class="items" id="items"></div>
+  </section>
+</div>
+
+<script>
+/* ============================================================
+   Settings: allowed values. Keep these in step with data/*.schema.json.
+   ============================================================ */
+const OPT = {
+  org_type: ["Charity", "Community legal centre", "Community legal organisation", "NFP", "NFP research institute", "Unclear"],
+  state: ["", "NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT", "National"],
+  jurisdiction: ["Australian", "International"],
+  category: ["client-facing chatbot or assistant", "intake, triage or referral", "service delivery or decision support",
+    "fundraising, marketing or communications", "grant writing or reporting", "data analysis, research or evaluation",
+    "internal operations or productivity", "advocacy, policy or legal", "other"],
+  stage: ["deployed", "pilot", "funded", "announced", "unclear", "discontinued"],
+  sup_type: ["Technology company", "Software vendor", "Fundraising platform", "Consultancy", "NFP intermediary", "Corporate foundation", "Philanthropic foundation", "Social enterprise", "Other"],
+  offering_category: ["fundraising", "case notes and frontline admin", "back office and ERP", "client-facing tools", "skills and capability building", "grantmaking", "funding and partnerships", "other"],
+  sup_stage: ["available", "pilot", "planned", "discontinued"],
+};
+
+/* Form layout for each database. type: text | textarea | select | date | sources | list | cases */
+const SPEC = {
+  cases: {
+    file: "data/cases.json", listKey: "cases", noun: "case",
+    fields: [
+      { key: "organisation", label: "Organisation", type: "text", req: true },
+      { key: "org_type", label: "Organisation type", type: "select", options: OPT.org_type },
+      { key: "jurisdiction", label: "Jurisdiction", type: "select", options: OPT.jurisdiction, req: true, hint: "International = Australian arm of an international organisation" },
+      { key: "international_network", label: "International network", type: "text", hint: "e.g. UNICEF, WWF", showIf: (v) => v.jurisdiction === "International" },
+      { key: "state", label: "State", type: "select", options: OPT.state },
+      { key: "cause_area", label: "Cause area", type: "text", hint: "e.g. homelessness, legal help" },
+      { key: "category", label: "Use-case category", type: "select", options: OPT.category, req: true },
+      { key: "stage", label: "Stage", type: "select", options: OPT.stage, req: true },
+      { key: "use_case", label: "What the AI does", type: "textarea", req: true, wide: true, hint: "One plain sentence: what the AI does and for whom." },
+      { key: "problem", label: "Problem being solved", type: "textarea", wide: true, hint: "What need or problem was the organisation trying to address?" },
+      { key: "ai_tool", label: "AI tool used", type: "text", wide: true, hint: "The product, platform or model, e.g. Microsoft 365 Copilot, Dataro, a custom GPT-4o chatbot." },
+      { key: "challenges", label: "Challenges encountered", type: "textarea", wide: true, hint: "Problems, risks or lessons reported, e.g. privacy, accuracy, staff uptake, cost. Leave blank if the source doesn't say." },
+      { key: "partner", label: "Partner, vendor or funder", type: "text", wide: true },
+      { key: "quote", label: "Quote from the source", type: "textarea", req: true, wide: true, hint: "Copy a short sentence word-for-word from the source." },
+      { key: "sources", label: "Sources", type: "sources", req: true, wide: true },
+      { key: "first_seen", label: "First seen", type: "date", req: true },
+      { key: "last_seen", label: "Last seen", type: "date", req: true },
+    ],
+    makeId: (v) => slug(v.organisation) + "--" + slug((v.category || "other").split(/,| or /)[0]),
+    summary: (r) => [r.category, r.stage, r.jurisdiction === "International" ? "International · " + (r.international_network || "") : r.state].filter(Boolean).join(" · "),
+  },
+  supporters: {
+    file: "data/supporters.json", listKey: "supporters", noun: "organisation",
+    fields: [
+      { key: "organisation", label: "Organisation", type: "text", req: true },
+      { key: "org_type", label: "Organisation type", type: "select", options: OPT.sup_type, req: true },
+      { key: "based_in", label: "Based in (country)", type: "text", req: true, hint: "e.g. Australia, United States" },
+      { key: "australian_presence", label: "Australian presence", type: "text", hint: "e.g. Melbourne office" },
+      { key: "offering_category", label: "What they offer", type: "select", options: OPT.offering_category, req: true },
+      { key: "stage", label: "Stage", type: "select", options: OPT.sup_stage, req: true },
+      { key: "offering", label: "Offering", type: "textarea", req: true, wide: true, hint: "One or two sentences: the AI product, funding or support it offers NFPs." },
+      { key: "nfp_clients", label: "Named NFP clients", type: "list", wide: true, hint: "Separate names with commas." },
+      { key: "related_cases", label: "Related cases", type: "cases", wide: true, hint: "Hold Ctrl (Windows) or Cmd (Mac) to pick several. Matching client names become links on the site." },
+      { key: "quote", label: "Quote from the source", type: "textarea", req: true, wide: true, hint: "Copy a short sentence word-for-word from the source." },
+      { key: "sources", label: "Sources", type: "sources", req: true, wide: true },
+      { key: "first_seen", label: "First seen", type: "date", req: true },
+      { key: "last_seen", label: "Last seen", type: "date", req: true },
+    ],
+    makeId: (v) => slug(v.organisation),
+    summary: (r) => [r.org_type, r.offering_category, r.based_in].filter(Boolean).join(" · "),
+  },
+};
+
+/* ============================================================ */
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const slug = (s) => String(s || "").toLowerCase().normalize("NFKD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+const today = () => { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10); };
+const store = { get(k) { try { return sessionStorage.getItem(k) ?? localStorage.getItem(k); } catch { return null; } },
+  set(k, v, keep) { try { (keep ? localStorage : sessionStorage).setItem(k, v); } catch {} },
+  clear(k) { try { sessionStorage.removeItem(k); localStorage.removeItem(k); } catch {} } };
+
+const S = { mode: null, repo: "", branch: "main", token: "", kind: "cases", db: {}, sha: {}, dirty: {}, editing: null, q: "" };
+
+function show(id, text, cls) { const e = $(id); e.hidden = !text; e.textContent = text || ""; e.className = "status" + (cls ? " " + cls : ""); }
+
+/* ---------- GitHub API ---------- */
+function b64encode(str) { const bytes = new TextEncoder().encode(str); let bin = ""; for (const b of bytes) bin += String.fromCharCode(b); return btoa(bin); }
+function b64decode(b64) { const bin = atob(b64.replace(/\s/g, "")); return new TextDecoder().decode(Uint8Array.from(bin, (c) => c.charCodeAt(0))); }
+async function gh(path, opts = {}) {
+  const r = await fetch("https://api.github.com" + path, { ...opts, headers: { Accept: "application/vnd.github+json", Authorization: "Bearer " + S.token, "X-GitHub-Api-Version": "2022-11-28", ...(opts.body ? { "Content-Type": "application/json" } : {}) } });
+  const body = await r.json().catch(() => ({}));
+  if (!r.ok) { const e = new Error(body.message || "GitHub error " + r.status); e.status = r.status; throw e; }
+  return body;
+}
+function explain(e) {
+  if (e.status === 401) return "GitHub didn't accept the token. Check it was copied in full and hasn't expired.";
+  if (e.status === 403) return "The token can't change this repository. Give it Contents: Read and write for this repo.";
+  if (e.status === 404) return "Couldn't find the repository or file. Check the repository name (username/repo-name), the branch, and that the token has access to this repo.";
+  if (e.status === 409 || e.status === 422) return "Someone else changed this file since you opened it. Your edit wasn't saved: reload the data below and make the change again.";
+  return "Something went wrong talking to GitHub: " + e.message + ". Check your connection and try again.";
+}
+async function loadFile(kind) {
+  const spec = SPEC[kind];
+  if (S.mode === "github") {
+    const f = await gh(`/repos/${S.repo}/contents/${spec.file}?ref=${encodeURIComponent(S.branch)}`);
+    S.sha[kind] = f.sha; S.db[kind] = JSON.parse(b64decode(f.content));
+  } else {
+    const r = await fetch(spec.file + "?v=" + Date.now(), { cache: "no-store" });
+    if (!r.ok) throw new Error("Couldn't read " + spec.file);
+    S.db[kind] = await r.json();
+  }
+}
+async function saveFile(kind, message) {
+  const spec = SPEC[kind], db = S.db[kind];
+  db.meta = { ...(db.meta || {}), last_updated: today(), version: today() };
+  db[spec.listKey].sort((a, b) => (a.organisation || "").localeCompare(b.organisation || ""));
+  const text = JSON.stringify(db, null, 2) + "\n";
+  if (S.mode === "github") {
+    const r = await gh(`/repos/${S.repo}/contents/${spec.file}`, { method: "PUT", body: JSON.stringify({ message, content: b64encode(text), sha: S.sha[kind], branch: S.branch }) });
+    S.sha[kind] = r.content.sha;
+  } else {
+    S.dirty[kind] = true;
+  }
+}
+
+/* ---------- sign in ---------- */
+(function prefill() {
+  const h = location.hostname;
+  if (h.endsWith(".github.io")) {
+    const owner = h.split(".")[0], seg = location.pathname.split("/").filter(Boolean);
+    $("repo").value = owner + "/" + (seg.length && !seg[0].endsWith(".html") ? seg[0] : h);
+  }
+  $("repo").value = store.get("tracker.repo") || $("repo").value;
+  $("branch").value = store.get("tracker.branch") || "main";
+  const t = store.get("tracker.token"); if (t) { $("token").value = t; $("remember").checked = (() => { try { return !!localStorage.getItem("tracker.token"); } catch { return false; } })(); }
+})();
+
+$("connect").onclick = async () => {
+  S.repo = $("repo").value.trim().replace(/^https?:\/\/github\.com\//, "").replace(/\/$/, "");
+  S.branch = $("branch").value.trim() || "main"; S.token = $("token").value.trim();
+  if (!/^[\w.-]+\/[\w.-]+$/.test(S.repo)) return show("signin-status", "Enter the repository as username/repo-name.", "error");
+  if (!S.token) return show("signin-status", "Paste your access token.", "error");
+  show("signin-status", "Signing in…");
+  S.mode = "github";
+  try {
+    const me = await gh("/user");
+    await Promise.all([loadFile("cases"), loadFile("supporters")]);
+    const keep = $("remember").checked;
+    store.clear("tracker.token"); store.set("tracker.token", S.token, keep); store.set("tracker.repo", S.repo, true); store.set("tracker.branch", S.branch, true);
+    enter(`Signed in as ${me.login}. Saving to ${S.repo} (${S.branch}). Changes appear on the public site in 1–2 minutes.`);
+  } catch (e) { S.mode = null; show("signin-status", explain(e), "error"); }
+};
+$("offline").onclick = async () => {
+  S.mode = "offline";
+  try { await Promise.all([loadFile("cases"), loadFile("supporters")]); enter("Offline mode: changes stay in this browser until you download the updated file and upload it to the repo's data folder."); }
+  catch { S.mode = null; show("signin-status", location.protocol === "file:" ? "Browsers block reading files when a page is opened directly. Run `python -m http.server` in this folder and open http://localhost:8000/admin.html." : "Couldn't read the data files.", "error"); }
+};
+$("signout").onclick = () => {
+  if (Object.values(S.dirty).some(Boolean) && !confirm("You have changes you haven't downloaded. Sign out anyway?")) return;
+  store.clear("tracker.token"); $("token").value = ""; location.reload();
+};
+function enter(msg) {
+  $("signin").hidden = true; $("workspace").hidden = false;
+  show("who", msg, S.mode === "github" ? "ok" : "");
+  $("download").hidden = S.mode !== "offline";
+  renderList();
+}
+
+/* ---------- list ---------- */
+for (const b of document.querySelectorAll(".views button")) b.onclick = () => {
+  S.kind = b.dataset.kind; closeEditor();
+  for (const x of document.querySelectorAll(".views button")) x.setAttribute("aria-selected", String(x === b));
+  renderList();
+};
+$("search").oninput = (e) => { S.q = e.target.value.trim().toLowerCase(); renderList(); };
+
+function rows(kind) { return (S.db[kind] && S.db[kind][SPEC[kind].listKey]) || []; }
+function renderList() {
+  $("n-cases").textContent = rows("cases").length; $("n-supporters").textContent = rows("supporters").length;
+  const spec = SPEC[S.kind];
+  $("add").textContent = "+ Add " + spec.noun;
+  $("download").textContent = "Download " + spec.file.split("/").pop() + (S.dirty[S.kind] ? " (changed)" : "");
+  const list = rows(S.kind).filter((r) => !S.q || JSON.stringify(r).toLowerCase().includes(S.q))
+    .sort((a, b) => (a.organisation || "").localeCompare(b.organisation || ""));
+  $("items").replaceChildren(...list.map((r) => {
+    const it = el("div", "item");
+    const t = el("div"); t.append(el("div", "name", r.organisation), el("div", "sub", spec.summary(r)));
+    const acts = el("div", "acts");
+    const ed = el("button", "btn", "Edit"); ed.type = "button"; ed.onclick = () => openEditor(r);
+    const del = el("button", "btn danger", "Delete"); del.type = "button"; del.onclick = () => remove(r);
+    acts.append(ed, del); it.append(t, acts); return it;
+  }));
+  if (!list.length) $("items").append(el("div", "empty", S.q ? "Nothing matches that search." : "No entries yet. Use the Add button to create the first one."));
+}
+
+async function remove(r) {
+  const spec = SPEC[S.kind];
+  if (!confirm(`Delete "${r.organisation}"? This removes it from the public site.`)) return;
+  const before = JSON.parse(JSON.stringify(S.db[S.kind]));
+  S.db[S.kind][spec.listKey] = rows(S.kind).filter((x) => x.id !== r.id);
+  try {
+    show("list-status", "Saving…");
+    await saveFile(S.kind, `Delete ${spec.noun}: ${r.organisation}`);
+    // A deleted case must also disappear from supporters' "related cases".
+    const linked = S.kind === "cases" ? rows("supporters").filter((s) => (s.related_cases || []).includes(r.id)) : [];
+    if (linked.length) {
+      for (const s of linked) s.related_cases = s.related_cases.filter((id) => id !== r.id);
+      await saveFile("supporters", `Remove deleted case ${r.id} from related cases`);
+    }
+    show("list-status", S.mode === "github" ? `Deleted "${r.organisation}". The site updates in 1–2 minutes.` : `Deleted "${r.organisation}". Download the file to keep this change.`, "ok");
+  } catch (e) { S.db[S.kind] = before; show("list-status", explain(e), "error"); }
+  renderList();
+}
+
+/* ---------- editor ---------- */
+$("add").onclick = () => openEditor(null);
+$("cancel").onclick = () => closeEditor();
+function closeEditor() { $("editor").hidden = true; S.editing = null; }
+
+function openEditor(record) {
+  const spec = SPEC[S.kind];
+  S.editing = record;
+  $("editor-title").textContent = record ? `Edit ${record.organisation}` : `Add ${spec.noun}`;
+  const v = record ? JSON.parse(JSON.stringify(record)) : { first_seen: today(), last_seen: today(), jurisdiction: "Australian", stage: S.kind === "cases" ? "deployed" : "available", sources: [{ title: "", url: "" }] };
+  const box = $("fields"); box.replaceChildren();
+  for (const f of spec.fields) box.append(fieldEl(f, v[f.key]));
+  show("editor-status", ""); updateVisibility(); updateId();
+  $("editor").hidden = false; $("editor").scrollIntoView({ behavior: "smooth", block: "start" });
+  box.querySelector("input,select,textarea").focus({ preventScroll: true });
+}
+
+function fieldEl(f, value) {
+  const wrap = el("div", "field" + (f.wide || f.type === "sources" ? " wide" : "")); wrap.dataset.key = f.key;
+  const id = "f-" + f.key;
+  const lab = el("label", null, f.label); lab.htmlFor = id; if (f.req) lab.append(" ", el("span", "req", "*"));
+  wrap.append(lab);
+  let input;
+  if (f.type === "select") {
+    const opts = !f.req && !f.options.includes("") ? ["", ...f.options] : f.options;
+    input = el("select"); for (const o of opts) { const op = el("option", null, o || "(none)"); op.value = o; input.append(op); }
+    input.value = value ?? (f.req ? f.options[0] : "");
+  } else if (f.type === "textarea") { input = el("textarea"); input.value = value ?? ""; }
+  else if (f.type === "date") { input = el("input"); input.type = "date"; input.value = value ?? ""; }
+  else if (f.type === "list") { input = el("input"); input.value = (value || []).join(", "); }
+  else if (f.type === "cases") {
+    input = el("select"); input.multiple = true;
+    for (const c of rows("cases").slice().sort((a, b) => a.organisation.localeCompare(b.organisation))) {
+      const op = el("option", null, `${c.organisation} — ${c.category}`); op.value = c.id; op.selected = (value || []).includes(c.id); input.append(op);
+    }
+  } else if (f.type === "sources") {
+    input = el("div"); input.style.display = "grid"; input.style.gap = "8px";
+    const addRow = (s) => {
+      const r = el("div", "src-row");
+      const t = el("input"); t.placeholder = "Publisher (date), e.g. ABC News (3 Nov 2026)"; t.value = s.title || ""; t.className = "src-title"; t.setAttribute("aria-label", "Source title");
+      const u = el("input"); u.type = "url"; u.placeholder = "https://…"; u.value = s.url || ""; u.className = "src-url"; u.setAttribute("aria-label", "Source link");
+      const x = el("button", "btn", "Remove"); x.type = "button"; x.onclick = () => { if (input.querySelectorAll(".src-row").length > 1) r.remove(); else { t.value = ""; u.value = ""; } };
+      r.append(t, u, x); input.insertBefore(r, addBtn);
+    };
+    const addBtn = el("button", "btn", "+ Add another source"); addBtn.type = "button"; addBtn.style.justifySelf = "start"; addBtn.onclick = () => addRow({});
+    input.append(addBtn); for (const s of (value && value.length ? value : [{}])) addRow(s);
+  } else { input = el("input"); input.value = value ?? ""; }
+  input.id = id;
+  const clearErr = () => { wrap.classList.remove("bad"); wrap.querySelector(".err").textContent = ""; };
+  input.addEventListener("input", clearErr); input.addEventListener("change", clearErr);
+  if (["organisation", "category", "jurisdiction"].includes(f.key)) input.addEventListener("input", () => { updateVisibility(); updateId(); });
+  wrap.append(input);
+  if (f.hint) wrap.append(el("span", "hint", f.hint));
+  wrap.append(el("span", "err"));
+  return wrap;
+}
+
+function readForm() {
+  const v = {};
+  for (const f of SPEC[S.kind].fields) {
+    const n = $("f-" + f.key);
+    if (f.type === "list") v[f.key] = n.value.split(",").map((x) => x.trim()).filter(Boolean);
+    else if (f.type === "cases") v[f.key] = [...n.selectedOptions].map((o) => o.value);
+    else if (f.type === "sources") v[f.key] = [...n.querySelectorAll(".src-row")].map((r) => ({ title: r.querySelector(".src-title").value.trim(), url: r.querySelector(".src-url").value.trim() })).filter((s) => s.title || s.url);
+    else v[f.key] = n.value.trim();
+  }
+  return v;
+}
+function updateVisibility() {
+  const v = readForm();
+  for (const f of SPEC[S.kind].fields) if (f.showIf) document.querySelector(`.field[data-key="${f.key}"]`).hidden = !f.showIf(v);
+}
+function updateId() {
+  const id = S.editing ? S.editing.id : SPEC[S.kind].makeId(readForm());
+  $("editor-id").textContent = id ? "ID: " + id + (S.editing ? "" : " (made from the name" + (S.kind === "cases" ? " and category)" : ")")) : "";
+}
+
+function validate(v, id) {
+  const errs = {};
+  for (const f of SPEC[S.kind].fields) {
+    const x = v[f.key];
+    if (f.req && (x === "" || x == null || (Array.isArray(x) && !x.length))) errs[f.key] = "Required.";
+  }
+  if (v.jurisdiction === "International" && !v.international_network) errs.international_network = "Name the international organisation, e.g. UNICEF.";
+  for (const s of v.sources || []) {
+    if (!/^https?:\/\/\S+\.\S+/.test(s.url)) { errs.sources = "Each source needs a full link starting with https://"; break; }
+  }
+  if (v.first_seen && v.last_seen && v.last_seen < v.first_seen) errs.last_seen = "Can't be before First seen.";
+  if (!id) errs.organisation = errs.organisation || "Enter a name.";
+  else if (!S.editing && rows(S.kind).some((r) => r.id === id)) errs.organisation = `An entry with ID "${id}" already exists. Edit that one instead${S.kind === "cases" ? ", or choose a different category" : ""}.`;
+  return errs;
+}
+
+$("editor").onsubmit = async (ev) => {
+  ev.preventDefault();
+  const spec = SPEC[S.kind], v = readForm();
+  if (S.kind === "cases" && v.jurisdiction !== "International") v.international_network = "";
+  const id = S.editing ? S.editing.id : spec.makeId(v);
+  const errs = validate(v, id);
+  for (const w of document.querySelectorAll("#fields .field")) {
+    const m = errs[w.dataset.key]; w.classList.toggle("bad", !!m); w.querySelector(".err").textContent = m || "";
+  }
+  if (Object.keys(errs).length) { show("editor-status", "Fix the highlighted fields, then save again.", "error"); document.querySelector("#fields .field.bad")?.scrollIntoView({ block: "center" }); return; }
+
+  const record = { id, ...v };
+  const list = S.db[S.kind][spec.listKey];
+  const before = JSON.parse(JSON.stringify(S.db[S.kind]));
+  const i = list.findIndex((r) => r.id === id);
+  if (i >= 0) list[i] = record; else list.push(record);
+  $("save").disabled = true; show("editor-status", "Saving…");
+  try {
+    await saveFile(S.kind, `${S.editing ? "Update" : "Add"} ${spec.noun}: ${record.organisation}`);
+    closeEditor();
+    show("list-status", S.mode === "github" ? `Saved "${record.organisation}". The public site updates in 1–2 minutes.` : `Saved "${record.organisation}" in this browser. Download the file to keep it.`, "ok");
+    renderList();
+  } catch (e) { S.db[S.kind] = before; show("editor-status", explain(e), "error"); }
+  finally { $("save").disabled = false; }
+};
+
+/* ---------- offline download ---------- */
+$("download").onclick = () => {
+  const spec = SPEC[S.kind];
+  const blob = new Blob([JSON.stringify(S.db[S.kind], null, 2) + "\n"], { type: "application/json" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = spec.file.split("/").pop();
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  S.dirty[S.kind] = false; renderList();
+};
+window.addEventListener("beforeunload", (e) => { if (Object.values(S.dirty).some(Boolean)) { e.preventDefault(); e.returnValue = ""; } });
+</script>
+</body>
+</html>
