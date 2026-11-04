@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NFP AI Use-Case Tracker</title>
+<meta name="description" content="Named not-for-profits in Australia using, piloting or funding AI, and the organisations that support them.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Australian not-for-profits · AI adoption</div>
+    <h1>NFP AI Use-Case Tracker</h1>
+    <p class="lede">Named not-for-profits in Australia using, piloting or funding AI, and the organisations that support them. Every entry is backed by a source and a quote.</p>
+    <div class="runline" id="runline">Loading the database…</div>
+  </header>
+
+  <nav class="views" role="tablist" aria-label="Database">
+    <button id="view-cases" role="tab" aria-selected="true" data-view="cases">NFP use cases <span class="n" id="n-cases">0</span></button>
+    <button id="view-supporters" role="tab" aria-selected="false" data-view="supporters">Supporting organisations <span class="n" id="n-supporters">0</span></button>
+  </nav>
+
+  <!-- ===== NFP use cases ===== -->
+  <section class="panel" id="panel-cases" aria-label="NFP use cases">
+    <div class="stats" aria-label="Summary">
+      <div class="stat"><b id="s-total">–</b><span>Cases tracked</span></div>
+      <div class="stat"><b id="s-deployed">–</b><span>Deployed</span></div>
+      <div class="stat"><b id="s-pilot">–</b><span>Pilots</span></div>
+      <div class="stat"><b id="s-intl">–</b><span>International charities in Australia</span></div>
+    </div>
+    <div class="bar" aria-label="Filters">
+      <div class="tabs" role="tablist" aria-label="Jurisdiction">
+        <button role="tab" aria-selected="true" data-jur="">All <span class="n" id="n-all">0</span></button>
+        <button role="tab" aria-selected="false" data-jur="Australian">Australian <span class="n" id="n-au">0</span></button>
+        <button role="tab" aria-selected="false" data-jur="International">International in Australia <span class="n" id="n-intl">0</span></button>
+      </div>
+      <input id="q" type="search" placeholder="Search organisation, tool, cause…" aria-label="Search cases">
+      <select id="f-stage" aria-label="Stage"><option value="">All stages</option></select>
+      <select id="f-cat" aria-label="Use case"><option value="">All use cases</option></select>
+      <select id="f-state" aria-label="State"><option value="">All states</option></select>
+      <button class="btn" id="export-cases" type="button">Download CSV</button>
+    </div>
+    <div class="list" id="list-cases" aria-live="polite">
+      <div class="empty"><strong>Loading cases</strong><span>Cases are read from data/cases.json in this repository.</span></div>
+    </div>
+  </section>
+
+  <!-- ===== Supporting organisations ===== -->
+  <section class="panel" id="panel-supporters" aria-label="Supporting organisations" hidden>
+    <div class="stats three" aria-label="Summary">
+      <div class="stat"><b id="s-sup">–</b><span>Supporting organisations</span></div>
+      <div class="stat"><b id="s-sup-au">–</b><span>Based in Australia</span></div>
+      <div class="stat"><b id="s-sup-clients">–</b><span>Named NFP clients</span></div>
+    </div>
+    <div class="bar" aria-label="Filters">
+      <input id="q-sup" type="search" placeholder="Search company, product, client…" aria-label="Search supporting organisations">
+      <select id="f-type" aria-label="Organisation type"><option value="">All types</option></select>
+      <select id="f-offer" aria-label="What they offer"><option value="">All offerings</option></select>
+      <button class="btn" id="export-supporters" type="button">Download CSV</button>
+    </div>
+    <div class="list" id="list-supporters" aria-live="polite">
+      <div class="empty"><strong>Loading organisations</strong><span>Supporting organisations are read from data/supporters.json.</span></div>
+    </div>
+  </section>
+
+  <footer>Each entry links to its sources. Quotes are taken from the source page; check a quote against the original before citing it. "International in Australia" means the Australian arm or affiliate of an international organisation or movement. Data: <a href="data/cases.json">cases.json</a> · <a href="data/supporters.json">supporters.json</a> · <a href="admin.html">Admin</a></footer>
+</div>
+
+<script>
+const CASES_URL = "data/cases.json";
+const SUPPORTERS_URL = "data/supporters.json";
+const STAGES = ["deployed", "pilot", "funded", "announced", "unclear", "discontinued"];
+const CATS = ["client-facing chatbot or assistant", "intake, triage or referral", "service delivery or decision support",
+  "fundraising, marketing or communications", "grant writing or reporting", "data analysis, research or evaluation",
+  "internal operations or productivity", "advocacy, policy or legal", "other"];
+const STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT", "National"];
+const TYPES = ["Technology company", "Software vendor", "Fundraising platform", "Consultancy", "NFP intermediary", "Corporate foundation", "Philanthropic foundation", "Social enterprise", "Other"];
+const OFFERS = ["fundraising", "case notes and frontline admin", "back office and ERP", "client-facing tools", "skills and capability building", "grantmaking", "funding and partnerships", "other"];
+
+const state = {
+  view: "cases", cases: [], supporters: [], meta: null, supMeta: null,
+  jur: "", q: "", stage: "", cat: "", st: "", qs: "", type: "", offer: "",
+};
+const $ = (id) => document.getElementById(id);
+const cap = (v) => v[0].toUpperCase() + v.slice(1);
+
+function fill(sel, values) { for (const v of values) { const o = document.createElement("option"); o.value = v; o.textContent = cap(v); sel.append(o); } }
+fill($("f-stage"), STAGES); fill($("f-cat"), CATS); fill($("f-state"), STATES); fill($("f-type"), TYPES); fill($("f-offer"), OFFERS);
+
+function fmtDate(s) { if (!s) return ""; const d = new Date(s + (s.length === 10 ? "T00:00:00" : "")); return isNaN(d) ? s : d.toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" }); }
+function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+function host(u) { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return u; } }
+function chip(text, cls) { return el("span", "chip" + (cls ? " " + cls : ""), text); }
+function sourceLinks(meta, sources) {
+  for (const src of (sources || []).slice(0, 4)) {
+    if (!/^https?:\/\//.test(src.url || "")) continue;
+    const a = el("a", null, src.title || host(src.url)); a.href = src.url; a.target = "_blank"; a.rel = "noopener"; meta.append(a);
+  }
+}
+function empty(list, title, text) { const e = el("div", "empty"); e.append(el("strong", null, title), el("span", null, text)); list.replaceChildren(e); }
+
+/* ---------- view switching ---------- */
+function setView(v) {
+  state.view = v;
+  for (const b of document.querySelectorAll(".views button")) b.setAttribute("aria-selected", String(b.dataset.view === v));
+  $("panel-cases").hidden = v !== "cases";
+  $("panel-supporters").hidden = v !== "supporters";
+  try { history.replaceState(null, "", v === "supporters" ? "#supporters" : location.pathname + location.search); } catch {}
+  render();
+}
+for (const b of document.querySelectorAll(".views button")) b.onclick = () => setView(b.dataset.view);
+
+/* ---------- NFP use cases ---------- */
+function caseMatches(c) {
+  if (state.jur && c.jurisdiction !== state.jur) return false;
+  if (state.stage && c.stage !== state.stage) return false;
+  if (state.cat && c.category !== state.cat) return false;
+  if (state.st && c.state !== state.st) return false;
+  if (state.q) {
+    const hay = [c.organisation, c.org_type, c.use_case, c.problem, c.ai_tool, c.challenges, c.partner, c.cause_area, c.quote, c.international_network].join(" ").toLowerCase();
+    if (!hay.includes(state.q.toLowerCase())) return false;
+  }
+  return true;
+}
+
+function renderCases() {
+  const all = state.cases;
+  const intl = all.filter((c) => c.jurisdiction === "International");
+  $("s-total").textContent = all.length;
+  $("s-deployed").textContent = all.filter((c) => c.stage === "deployed").length;
+  $("s-pilot").textContent = all.filter((c) => c.stage === "pilot").length;
+  $("s-intl").textContent = intl.length;
+  $("n-all").textContent = all.length; $("n-au").textContent = all.length - intl.length; $("n-intl").textContent = intl.length;
+  const list = $("list-cases");
+  const rows = all.filter(caseMatches).sort((a, b) => (b.last_seen || "").localeCompare(a.last_seen || "") || (a.organisation || "").localeCompare(b.organisation || ""));
+  if (!rows.length) {
+    const filtered = state.q || state.stage || state.cat || state.st || state.jur;
+    return empty(list, filtered ? "No cases match these filters" : "No cases yet", filtered ? "Clear the search or pick a different jurisdiction, stage, use case or state." : "Add cases on the Admin page to see them here.");
+  }
+  list.replaceChildren(...rows.map(caseCard));
+}
+
+function caseCard(c) {
+  const art = el("article", "entry");
+  const top = el("div", "top");
+  const name = el("div"); name.append(el("h2", "org", c.organisation || "Unnamed organisation"));
+  const sub = [c.org_type, c.partner ? "with " + c.partner : ""].filter(Boolean).join(" · ");
+  if (sub) name.append(el("div", "abn", sub));
+  top.append(name);
+  const chips = el("div", "chips");
+  if (c.stage) chips.append(chip(c.stage, "stage-" + c.stage));
+  if (c.category) chips.append(chip(c.category, "cat"));
+  if (c.jurisdiction === "International") chips.append(chip("International · " + (c.international_network || "network"), "intl"));
+  if (c.state) chips.append(chip(c.state));
+  if (c.cause_area) chips.append(chip(c.cause_area));
+  top.append(chips);
+  art.append(top);
+  if (c.use_case) art.append(el("p", "usecase", c.use_case));
+  const parts = [["Problem being solved", c.problem], ["AI tool used", c.ai_tool], ["Challenges encountered", c.challenges]];
+  if (parts.some(([, v]) => v)) {
+    const dl = el("dl", "details");
+    for (const [label, v] of parts) {
+      const d = el("div", "detail" + (v ? "" : " missing"));
+      d.append(el("dt", null, label), el("dd", null, v || "Not reported in the sources yet"));
+      dl.append(d);
+    }
+    art.append(dl);
+  }
+  if (c.quote) art.append(el("blockquote", null, `“${c.quote}”`));
+  const meta = el("div", "meta");
+  sourceLinks(meta, c.sources);
+  if (c.first_seen) meta.append(el("span", null, `First seen ${fmtDate(c.first_seen)}`));
+  if (c.last_seen && c.last_seen !== c.first_seen) meta.append(el("span", null, `Last seen ${fmtDate(c.last_seen)}`));
+  art.append(meta);
+  return art;
+}
+
+/* ---------- Supporting organisations ---------- */
+function supMatches(s) {
+  if (state.type && s.org_type !== state.type) return false;
+  if (state.offer && s.offering_category !== state.offer) return false;
+  if (state.qs) {
+    const hay = [s.organisation, s.org_type, s.offering, s.based_in, s.australian_presence, (s.nfp_clients || []).join(" "), s.quote].join(" ").toLowerCase();
+    if (!hay.includes(state.qs.toLowerCase())) return false;
+  }
+  return true;
+}
+
+function renderSupporters() {
+  const all = state.supporters;
+  $("s-sup").textContent = all.length;
+  $("s-sup-au").textContent = all.filter((s) => s.based_in === "Australia").length;
+  $("s-sup-clients").textContent = new Set(all.flatMap((s) => s.nfp_clients || [])).size;
+  const list = $("list-supporters");
+  const rows = all.filter(supMatches).sort((a, b) => (a.organisation || "").localeCompare(b.organisation || ""));
+  if (!rows.length) {
+    const filtered = state.qs || state.type || state.offer;
+    return empty(list, filtered ? "No organisations match these filters" : "No supporting organisations yet", filtered ? "Clear the search or pick a different type or offering." : "Add organisations on the Admin page to see them here.");
+  }
+  list.replaceChildren(...rows.map(supCard));
+}
+
+function supCard(s) {
+  const art = el("article", "entry");
+  const top = el("div", "top");
+  const name = el("div"); name.append(el("h2", "org", s.organisation));
+  name.append(el("div", "abn", [s.org_type, s.based_in ? "based in " + s.based_in : "", s.australian_presence].filter(Boolean).join(" · ")));
+  top.append(name);
+  const chips = el("div", "chips");
+  if (s.stage) chips.append(chip(s.stage, "stage-" + s.stage));
+  if (s.offering_category) chips.append(chip(s.offering_category, "cat"));
+  top.append(chips);
+  art.append(top);
+  if (s.offering) art.append(el("p", "usecase", s.offering));
+  if (s.quote) art.append(el("blockquote", null, `“${s.quote}”`));
+  if ((s.nfp_clients || []).length) {
+    const row = el("div", "clients"); row.append(el("span", null, "Works with:"));
+    const linked = new Map(state.cases.filter((c) => (s.related_cases || []).includes(c.id)).map((c) => [c.organisation, c]));
+    for (const n of s.nfp_clients) {
+      if (linked.has(n)) {
+        const b = el("button", "linkish", n); b.type = "button"; b.title = "Show this organisation's case";
+        b.onclick = () => { resetCaseFilters(); state.q = n; $("q").value = n; setView("cases"); };
+        row.append(b);
+      } else row.append(chip(n));
+    }
+    art.append(row);
+  }
+  const meta = el("div", "meta");
+  sourceLinks(meta, s.sources);
+  if (s.first_seen) meta.append(el("span", null, `First seen ${fmtDate(s.first_seen)}`));
+  art.append(meta);
+  return art;
+}
+
+function resetCaseFilters() {
+  Object.assign(state, { jur: "", q: "", stage: "", cat: "", st: "" });
+  for (const id of ["q", "f-stage", "f-cat", "f-state"]) $(id).value = "";
+  for (const b of document.querySelectorAll("#panel-cases .tabs button")) b.setAttribute("aria-selected", String(b.dataset.jur === ""));
+}
+
+/* ---------- shared ---------- */
+function render() {
+  $("n-cases").textContent = state.cases.length; $("n-supporters").textContent = state.supporters.length;
+  const m = state.view === "cases" ? state.meta : state.supMeta;
+  const count = state.view === "cases" ? `${state.cases.length} cases` : `${state.supporters.length} organisations`;
+  $("runline").textContent = (m && m.last_updated ? `Data as of ${fmtDate(m.last_updated)} · ` : "") + count;
+  if (state.view === "cases") renderCases(); else renderSupporters();
+}
+
+function toCsv(rows, cols) {
+  const esc = (v) => { const s = v == null ? "" : String(v); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const val = (r, k) => k === "sources" ? (r.sources || []).map((s) => s.url).join(" | ") : Array.isArray(r[k]) ? r[k].join("; ") : r[k];
+  return [cols.join(","), ...rows.map((r) => cols.map((k) => esc(val(r, k))).join(","))].join("\n");
+}
+function download(name, text) {
+  const blob = new Blob(["﻿" + text], { type: "text/csv;charset=utf-8" });
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$("export-cases").onclick = () => download(`nfp-ai-cases-${(state.meta && state.meta.last_updated) || "export"}.csv`, toCsv(state.cases.filter(caseMatches),
+  ["id", "organisation", "org_type", "jurisdiction", "international_network", "state", "cause_area", "category", "use_case", "problem", "ai_tool", "challenges", "partner", "stage", "quote", "sources", "first_seen", "last_seen"]));
+$("export-supporters").onclick = () => download(`nfp-ai-supporters-${(state.supMeta && state.supMeta.last_updated) || "export"}.csv`, toCsv(state.supporters.filter(supMatches),
+  ["id", "organisation", "org_type", "based_in", "australian_presence", "offering_category", "offering", "stage", "nfp_clients", "quote", "sources", "first_seen", "last_seen"]));
+
+for (const b of document.querySelectorAll("#panel-cases .tabs button")) b.onclick = () => {
+  state.jur = b.dataset.jur;
+  for (const x of document.querySelectorAll("#panel-cases .tabs button")) x.setAttribute("aria-selected", String(x === b));
+  render();
+};
+$("q").oninput = (e) => { state.q = e.target.value.trim(); render(); };
+$("f-stage").onchange = (e) => { state.stage = e.target.value; render(); };
+$("f-cat").onchange = (e) => { state.cat = e.target.value; render(); };
+$("f-state").onchange = (e) => { state.st = e.target.value; render(); };
+$("q-sup").oninput = (e) => { state.qs = e.target.value.trim(); render(); };
+$("f-type").onchange = (e) => { state.type = e.target.value; render(); };
+$("f-offer").onchange = (e) => { state.offer = e.target.value; render(); };
+
+// "?v=" + time stops the browser showing an old copy of the data after an update.
+const getJson = (u) => fetch(u + "?v=" + Date.now(), { cache: "no-store" }).then((r) => { if (!r.ok) throw new Error(u + " " + r.status); return r.json(); });
+Promise.allSettled([getJson(CASES_URL), getJson(SUPPORTERS_URL)]).then(([c, s]) => {
+  if (c.status === "fulfilled") { state.meta = c.value.meta || null; state.cases = c.value.cases || []; }
+  if (s.status === "fulfilled") { state.supMeta = s.value.meta || null; state.supporters = s.value.supporters || []; }
+  if (location.hash === "#supporters") setView("supporters"); else render();
+  const fileHint = location.protocol === "file:" ? "Browsers block reading files when a page is opened directly. Run `python -m http.server` in this folder and open http://localhost:8000, or view the page on GitHub Pages." : "Check the file exists and is valid JSON (run scripts/validate.py).";
+  if (c.status === "rejected") { empty($("list-cases"), "Couldn't load data/cases.json", fileHint); }
+  if (s.status === "rejected") { empty($("list-supporters"), "Couldn't load data/supporters.json", fileHint); }
+});
+</script>
+</body>
+</html>
