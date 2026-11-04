@@ -2,8 +2,8 @@
   "meta": {
     "name": "NFP AI Use-Case Tracker",
     "description": "Named not-for-profits in Australia using, piloting or funding AI, each with a source and a verbatim quote.",
-    "version": "2026-10-29",
-    "last_updated": "2026-10-29",
+    "version": "2026-11-04",
+    "last_updated": "2026-11-04",
     "schema": "cases.schema.json"
   },
   "cases": [
@@ -791,6 +791,31 @@
       ],
       "first_seen": "2026-10-19",
       "last_seen": "2026-10-19"
+    },
+    {
+      "id": "save-the-children-australia--client-facing-chatbot",
+      "organisation": "Save the Children Australia",
+      "org_type": "NFP",
+      "jurisdiction": "Australian",
+      "international_network": "",
+      "state": "NSW",
+      "cause_area": "Children",
+      "category": "client-facing chatbot or assistant",
+      "stage": "deployed",
+      "use_case": "Uses Dataro. AI to do grant writing",
+      "problem": "",
+      "ai_tool": "Dataro.AI",
+      "challenges": "",
+      "partner": "",
+      "quote": "Blaugh",
+      "sources": [
+        {
+          "title": "",
+          "url": "https://www.savethechildren.net/blog/harnessing-artificial-intelligence-child-protection-ethical-roadmap"
+        }
+      ],
+      "first_seen": "2026-11-04",
+      "last_seen": "2026-11-04"
     },
     {
       "id": "settlement-services-international--internal-operations",
